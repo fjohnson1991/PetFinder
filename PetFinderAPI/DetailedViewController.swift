@@ -25,6 +25,7 @@ class DetailedViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         nameLabel.text = animalToAdd?.name
         breedLabel.text = animalToAdd?.breed
         ageLabel.text = animalToAdd?.age
@@ -36,16 +37,31 @@ class DetailedViewController: UIViewController {
     
     
     @IBAction func addToFavoritesButton(_ sender: AnyObject) {
-        AnimalDataStore.sharedInstance.favorites.append(animalToAdd!)
-        let userID = FIRAuth.auth()?.currentUser?.uid
-        let ref = FIRDatabase.database().reference().root
-        ref.child("users").child(userID!).setValue(animalToAdd?.name, forKey: "Favorites")
-        print("favorite added")
-        dismiss(animated: true, completion: nil)
         
+        guard let animalName = animalToAdd?.name,
+            let animalBreed = animalToAdd?.breed,
+            let animalAge = animalToAdd?.age,
+            let animalSize = animalToAdd?.size,
+            let animalSex = animalToAdd?.sex
+            else { return }
+        
+        var newDictionary = [String: String]()
+        newDictionary["name"] = animalName
+        newDictionary["breed"] = animalBreed
+        newDictionary["age"] = animalAge
+        newDictionary["size"] = animalSize
+        newDictionary["sex"] = animalSex
+        
+        let ref = FIRDatabase.database().reference().root
+        let key = (AnimalDataStore.sharedInstance.username)
+        
+        ref.child("favorites").observeSingleEvent(of: .value, with: { snapshot in
+            var animalToAddToFirebase = AnimalDataStore.sharedInstance.animalFavs
+            animalToAddToFirebase.append(newDictionary)
+            ref.child("favorites").updateChildValues(["\(key)": animalToAddToFirebase])
+        })
+        self.presentAlertWithTitle(title: "Congrats!", message: "You successfully added a favorite")
     }
-    
-    
     
     
 

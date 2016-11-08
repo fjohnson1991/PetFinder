@@ -10,7 +10,7 @@
 		08F1D626A30CC449111BA169 /* Pods_PetFinderAPI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 839B05B5C502F0D072369411 /* Pods_PetFinderAPI.framework */; };
 		B50A93B31DC2DE6600F3C572 /* AnimalDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B50A93B21DC2DE6600F3C572 /* AnimalDataStore.swift */; };
 		B5B37B301DCE15D000AC90A4 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5B37B2F1DCE15D000AC90A4 /* Constants.swift */; };
-		B5C0A32A1DC386E3001FC5A7 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B5C0A3291DC386E3001FC5A7 /* GoogleService-Info.plist */; };
+		B5B37B371DCFB25300AC90A4 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B5B37B361DCFB25300AC90A4 /* GoogleService-Info.plist */; };
 		B5C0A32C1DC39043001FC5A7 /* SignInViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5C0A32B1DC39043001FC5A7 /* SignInViewController.swift */; };
 		B5CD3E0F1DBBC06C00CF289E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5CD3E0E1DBBC06C00CF289E /* AppDelegate.swift */; };
 		B5CD3E111DBBC06C00CF289E /* AnimalTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5CD3E101DBBC06C00CF289E /* AnimalTableViewController.swift */; };
@@ -32,7 +32,8 @@
 		839B05B5C502F0D072369411 /* Pods_PetFinderAPI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_PetFinderAPI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B50A93B21DC2DE6600F3C572 /* AnimalDataStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AnimalDataStore.swift; sourceTree = "<group>"; };
 		B5B37B2F1DCE15D000AC90A4 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
-		B5C0A3291DC386E3001FC5A7 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		B5B37B311DCE38B400AC90A4 /* PetFinderAPI.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PetFinderAPI.entitlements; sourceTree = "<group>"; };
+		B5B37B361DCFB25300AC90A4 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		B5C0A32B1DC39043001FC5A7 /* SignInViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SignInViewController.swift; sourceTree = "<group>"; };
 		B5CD3E0B1DBBC06C00CF289E /* PetFinderAPI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PetFinderAPI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B5CD3E0E1DBBC06C00CF289E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -93,8 +94,8 @@
 		B50A93AF1DC2D8D300F3C572 /* DetailedVC */ = {
 			isa = PBXGroup;
 			children = (
-				B5CD3E271DBBD5F900CF289E /* DetailTableViewCell.swift */,
 				B5CD3E2F1DBC6F0600CF289E /* DetailedViewController.swift */,
+				B5CD3E271DBBD5F900CF289E /* DetailTableViewCell.swift */,
 			);
 			name = DetailedVC;
 			sourceTree = "<group>";
@@ -146,6 +147,7 @@
 		B5CD3E0D1DBBC06C00CF289E /* PetFinderAPI */ = {
 			isa = PBXGroup;
 			children = (
+				B5B37B311DCE38B400AC90A4 /* PetFinderAPI.entitlements */,
 				B5CD3E0E1DBBC06C00CF289E /* AppDelegate.swift */,
 				B5B37B2F1DCE15D000AC90A4 /* Constants.swift */,
 				B50A93B01DC2D90100F3C572 /* DataStore */,
@@ -157,9 +159,9 @@
 				B5CD3E101DBBC06C00CF289E /* AnimalTableViewController.swift */,
 				B5CD3E181DBBC06D00CF289E /* Assets.xcassets */,
 				B5CD3E1A1DBBC06D00CF289E /* LaunchScreen.storyboard */,
-				B5C0A3291DC386E3001FC5A7 /* GoogleService-Info.plist */,
 				B5CD3E1D1DBBC06D00CF289E /* Info.plist */,
 				B5CD3E151DBBC06D00CF289E /* PetFinderAPI.xcdatamodeld */,
+				B5B37B361DCFB25300AC90A4 /* GoogleService-Info.plist */,
 			);
 			path = PetFinderAPI;
 			sourceTree = "<group>";
@@ -199,7 +201,13 @@
 				TargetAttributes = {
 					B5CD3E0A1DBBC06C00CF289E = {
 						CreatedOnToolsVersion = 8.0;
+						DevelopmentTeam = 2UY7XP5ASH;
 						ProvisioningStyle = Automatic;
+						SystemCapabilities = {
+							com.apple.Keychain = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -227,7 +235,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B5CD3E1C1DBBC06D00CF289E /* LaunchScreen.storyboard in Resources */,
-				B5C0A32A1DC386E3001FC5A7 /* GoogleService-Info.plist in Resources */,
+				B5B37B371DCFB25300AC90A4 /* GoogleService-Info.plist in Resources */,
 				B5CD3E191DBBC06D00CF289E /* Assets.xcassets in Resources */,
 				B5CD3E141DBBC06C00CF289E /* Main.storyboard in Resources */,
 			);
@@ -422,9 +430,11 @@
 			baseConfigurationReference = F32CC7DC6E0B2BB35F46CE28 /* Pods-PetFinderAPI.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = PetFinderAPI/PetFinderAPI.entitlements;
+				DEVELOPMENT_TEAM = 2UY7XP5ASH;
 				INFOPLIST_FILE = PetFinderAPI/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.FJ.PetFinderAPI;
+				PRODUCT_BUNDLE_IDENTIFIER = com.FJ.PetFinderAPI2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
 			};
@@ -435,9 +445,11 @@
 			baseConfigurationReference = 23D11A6EC07EBE61965E8952 /* Pods-PetFinderAPI.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = PetFinderAPI/PetFinderAPI.entitlements;
+				DEVELOPMENT_TEAM = 2UY7XP5ASH;
 				INFOPLIST_FILE = PetFinderAPI/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.FJ.PetFinderAPI;
+				PRODUCT_BUNDLE_IDENTIFIER = com.FJ.PetFinderAPI2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
 			};

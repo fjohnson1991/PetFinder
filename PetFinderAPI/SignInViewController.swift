@@ -17,7 +17,6 @@ class SignInViewController: UIViewController {
     @IBOutlet weak var passwordTextField: UITextField!
     let ref = FIRDatabase.database().reference().root
     
-    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -32,11 +31,13 @@ class SignInViewController: UIViewController {
     
     @IBAction func signInButton(_ sender: AnyObject) {
         guard let email = emailTextField.text, let password = passwordTextField.text else { return }
+        
         FIRAuth.auth()?.signIn(withEmail: email, password: password) { (user, error) in
             if let error = error {
                 print(error.localizedDescription)
                 
             } else if let user = FIRAuth.auth()?.currentUser {
+                AnimalDataStore.displayName(email: email)
                 self.performSegue(withIdentifier: "loginSuccess", sender: self)
             }
         }
@@ -44,13 +45,14 @@ class SignInViewController: UIViewController {
     
     
     @IBAction func signUpButton(_ sender: AnyObject) {
-        guard let password = passwordTextField.text, !password.isEmpty else { print("Password is empty"); return }
-        
         guard let email = emailTextField.text, !email.isEmpty else { print("Email is empty"); return }
+        guard let password = passwordTextField.text, !password.isEmpty else { print("Password is empty"); return }
+
         if email != "" && password != "" {
             FIRAuth.auth()?.createUser(withEmail: email, password: password, completion: { (user, error) in
                 if error == nil {
                     self.ref.child("users").child((user?.uid)!).setValue(email)
+                    AnimalDataStore.displayName(email: email)
                     self.performSegue(withIdentifier: "loginSuccess", sender: self)
                 } else {
                     if error != nil {
@@ -59,8 +61,9 @@ class SignInViewController: UIViewController {
                 }
             })
         }
-        
     }
+    
+    
     
     func checkError(error: Error) {
         if let errCode = FIRAuthErrorCode(rawValue: error._code) {

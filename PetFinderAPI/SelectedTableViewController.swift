@@ -7,28 +7,38 @@
 //
 
 import UIKit
+import Firebase
+import FirebaseDatabase
 
 class SelectedTableViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
 
     @IBOutlet weak var favoritesTableView: UITableView!
     
-    var animalArray = AnimalDataStore.sharedInstance.favorites
+    var animalArray = [[String: Any]]()
     var indexPathForCell: Int = 0
-        
+    let ref = FIRDatabase.database().reference().root
+    let key = AnimalDataStore.sharedInstance.username
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        print("AT SELECTEDVC")
 
-        favoritesTableView.reloadData()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        self.downloadFavorites {
+            OperationQueue.main.addOperation {
+                self.favoritesTableView.reloadData()
+            }
+        }
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-    
-//    override func viewWillAppear(_ animated: Bool) {
-//        favoritesTableView.reloadData()
-//    }
 
     // MARK: - Table view data source
 
@@ -46,12 +56,11 @@ class SelectedTableViewController: UIViewController, UITableViewDataSource, UITa
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! DetailTableViewCell
         
-        cell.animalNameLabel.text = animalArray[indexPath.row].name
-        cell.breedLabel.text = animalArray[indexPath.row].breed
-        cell.sexLabel.text = animalArray[indexPath.row].sex
-        cell.ageLabel.text = animalArray[indexPath.row].age
-        cell.sizeLabel.text = animalArray[indexPath.row].size
-        indexPathForCell = indexPath.row
+        cell.animalNameLabel.text = String(describing: animalArray[indexPath.row]["name"]!)
+        cell.breedLabel.text = String(describing: animalArray[indexPath.row]["breed"]!)
+        cell.sexLabel.text = String(describing: animalArray[indexPath.row]["sex"]!)
+        cell.ageLabel.text = String(describing: animalArray[indexPath.row]["age"]!)
+        cell.sizeLabel.text = String(describing: animalArray[indexPath.row]["size"]!)
         cell.unfavButton.addTarget(self, action: #selector(unfavoriteButton), for: .touchUpInside)
         indexPathForCell = indexPath.row
         
@@ -60,13 +69,30 @@ class SelectedTableViewController: UIViewController, UITableViewDataSource, UITa
     
     func unfavoriteButton(sender: UIButton) {
         _ = sender.tag
-        print(animalArray.count)
-        animalArray.remove(at: indexPathForCell)
-        print(animalArray.count)
+
+        let cellContent = sender.superview!
+        let cell = cellContent.superview! as! UITableViewCell
+        let indexPath = self.favoritesTableView.indexPath(for: cell)
+        self.animalArray.remove(at: (indexPath?.row)!)
+        ref.child("favorites").observeSingleEvent(of: .value, with: { snapshot in
+            AnimalDataStore.sharedInstance.animalFavs.removeAll()
+            var animalToAddToFirebase = AnimalDataStore.sharedInstance.animalFavs
+            animalToAddToFirebase = self.animalArray
+            self.ref.child("favorites").updateChildValues(["\(self.key)": animalToAddToFirebase])
+        })
         presentAlertWithTitle(title: "Success", message: "You have refined your favorites list")
         favoritesTableView.reloadData()
     }
 
+    
+    func downloadFavorites(with completion: @escaping ()-> ()) {
+
+        AnimalDataStore.downloadFavorites { 
+            self.animalArray = AnimalDataStore.sharedInstance.animalFavs
+            print(self.animalArray)
+            completion()
+        }
+    }
     
     
     /*
@@ -119,7 +145,7 @@ extension UIViewController {
     func presentAlertWithTitle(title: String, message : String)
     {
         let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        let OKAction = UIAlertAction(title: "OK", style: .default) {
+        let OKAction = UIAlertAction(title: "OK", style: .cancel) {
             (action: UIAlertAction) in print("Youve pressed OK Button")
         }
         alertController.addAction(OKAction)
