@@ -17,13 +17,10 @@ class SelectedTableViewController: UIViewController, UITableViewDataSource, UITa
     var animalArray = [[String: Any]]()
     var indexPathForCell: Int = 0
     let ref = FIRDatabase.database().reference().root
-    let key = AnimalDataStore.sharedInstance.username
-    
+    let userKey =  FIRAuth.auth()?.currentUser?.uid
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        print("AT SELECTEDVC")
 
     }
     
@@ -69,29 +66,70 @@ class SelectedTableViewController: UIViewController, UITableViewDataSource, UITa
     
     func unfavoriteButton(sender: UIButton) {
         _ = sender.tag
-
+        
         let cellContent = sender.superview!
         let cell = cellContent.superview! as! UITableViewCell
         let indexPath = self.favoritesTableView.indexPath(for: cell)
-        self.animalArray.remove(at: (indexPath?.row)!)
-        ref.child("favorites").observeSingleEvent(of: .value, with: { snapshot in
-            AnimalDataStore.sharedInstance.animalFavs.removeAll()
-            var animalToAddToFirebase = AnimalDataStore.sharedInstance.animalFavs
-            animalToAddToFirebase = self.animalArray
-            self.ref.child("favorites").updateChildValues(["\(self.key)": animalToAddToFirebase])
+        
+        self.ref.child("animals").observeSingleEvent(of: .value, with: { (snapshot) in
+            if let animalValues = snapshot.value as? [String: Any] {
+                
+                let animalToRemoveName = self.animalArray[(indexPath?.row)!]["name"] as! String
+                let animalToRemoveBreed = self.animalArray[(indexPath?.row)!]["breed"] as! String
+                let animalToRemoveSex = self.animalArray[(indexPath?.row)!]["sex"] as! String
+                let animalToRemoveAge = self.animalArray[(indexPath?.row)!]["age"] as! String
+                let animalToRemoveSize = self.animalArray[(indexPath?.row)!]["size"] as! String
+                print(animalToRemoveName)
+                
+                for animal in animalValues {
+                    let value = animal.value as! [String: String]
+                    if (value["name"] == animalToRemoveName) && (value["breed"] == animalToRemoveBreed) && (value["sex"] == animalToRemoveSex) && (value["age"] == animalToRemoveAge) && (value["size"] == animalToRemoveSize) {
+                        
+                        let keyToRemove = animal.key
+                        print(keyToRemove)
+                        
+                        self.ref.child("favorites").child(self.userKey!).observeSingleEvent(of: .value, with: { snapshot in
+                            if let favValues = snapshot.value as? [String] {
+                                if favValues.contains(keyToRemove) {
+                                    for animalValue in favValues {
+                                        print(animalValue)
+                                        self.ref.child("favorites").child(self.userKey!).child(animalValue).removeValue()
+                                    }
+                                    
+                                }
+                            }
+                        })
+                    }
+                }
+            }
         })
+        
         presentAlertWithTitle(title: "Success", message: "You have refined your favorites list")
         favoritesTableView.reloadData()
     }
 
     
     func downloadFavorites(with completion: @escaping ()-> ()) {
-
-        AnimalDataStore.downloadFavorites { 
-            self.animalArray = AnimalDataStore.sharedInstance.animalFavs
-            print(self.animalArray)
-            completion()
-        }
+        animalArray.removeAll()
+        let ref = FIRDatabase.database().reference().root
+        
+        
+        ref.child("favorites").child(userKey!).observeSingleEvent(of: .value, with: { snapshot in
+            if let favValues = snapshot.value as? [String] {
+                ref.child("animals").observeSingleEvent(of: .value, with: { snapshot in
+                    if let animalValues = snapshot.value as? [String: Any] {
+                        for (_, value) in animalValues.enumerated() {
+                            if favValues.contains(value.key) {
+                                var animalToAdd = [String: Any]()
+                                animalToAdd = value.value as! [String : Any]
+                                self.animalArray.append(animalToAdd)
+                                completion()
+                            }
+                        }
+                    }
+                })
+            }
+        })
     }
     
     

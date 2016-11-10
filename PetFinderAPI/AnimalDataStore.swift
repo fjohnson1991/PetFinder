@@ -15,8 +15,8 @@ class AnimalDataStore {
     static let sharedInstance = AnimalDataStore()
     private init() {}
     
-    var favorites: [Animal] = []
-    var animalFavs = [[String: Any]]()
+    var firebaseAnimals = [String: Any]()
+    var animalFavs = [String: Any]()
     var animals: [Animal] = []
     var username = ""
     
@@ -38,23 +38,25 @@ class AnimalDataStore {
         let username = usernameArray[0]
         AnimalDataStore.sharedInstance.username = username
     }
+
     
-    class func downloadFavorites(with completion: @escaping () -> Void) {
-        
-        let ref = FIRDatabase.database().reference().root
-        let key = (AnimalDataStore.sharedInstance.username)
-        
-        ref.child("favorites").observeSingleEvent(of: .value, with: { snapshot in
-            if let values = snapshot.value as? [String : AnyObject] {
-                guard let favs = values[key] as? [[String: Any]] else {return}
-                for fav in favs {
-                    AnimalDataStore.sharedInstance.animalFavs.append(fav)
-                }
-                completion()
-            }
-        })
-    }
     
+//    class func downloadAnimals(with completion: @escaping () -> Void) {
+//        
+//        let ref = FIRDatabase.database().reference().root
+//        let key =  ref.child("animals").childByAutoId()
+//        
+//        ref.child("animals").observeSingleEvent(of: .value, with: { snapshot in
+//            if let values = snapshot.value as? [String : AnyObject] {
+//                guard let animals = values[key] as? [[String: Any]] else {return}
+//                for animal in animals {
+//                    AnimalDataStore.sharedInstance.firebaseAnimals.append(animal)
+//                }
+//                completion()
+//            }
+//        })
+//    }
+//    
     
     
 }

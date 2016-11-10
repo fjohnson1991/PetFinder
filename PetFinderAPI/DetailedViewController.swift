@@ -38,6 +38,11 @@ class DetailedViewController: UIViewController {
     
     @IBAction func addToFavoritesButton(_ sender: AnyObject) {
         
+        let ref = FIRDatabase.database().reference().root
+        let key =  ref.child("animals").childByAutoId().key
+        guard let userKey = FIRAuth.auth()?.currentUser?.uid else {return}
+
+        
         guard let animalName = animalToAdd?.name,
             let animalBreed = animalToAdd?.breed,
             let animalAge = animalToAdd?.age,
@@ -52,15 +57,21 @@ class DetailedViewController: UIViewController {
         newDictionary["size"] = animalSize
         newDictionary["sex"] = animalSex
         
-        let ref = FIRDatabase.database().reference().root
-        let key = (AnimalDataStore.sharedInstance.username)
-        
-        ref.child("favorites").observeSingleEvent(of: .value, with: { snapshot in
-            var animalToAddToFirebase = AnimalDataStore.sharedInstance.animalFavs
-            animalToAddToFirebase.append(newDictionary)
-            ref.child("favorites").updateChildValues(["\(key)": animalToAddToFirebase])
+        ref.child("animals").updateChildValues(["\(key)": newDictionary])
+
+        ref.child("favorites").child(userKey).observeSingleEvent(of: .value, with: { snapshot in
+            
+            var count = "0"
+            if let values = snapshot.value as? [String] {
+                count = String(describing: values.count)
+            }
+            var newFavorite = [String: String]()
+            newFavorite[count] = key
+            ref.child("favorites").child(userKey).updateChildValues(newFavorite)
+            self.presentAlertWithTitle(title: "Congrats!", message: "You successfully added a favorite")
+
         })
-        self.presentAlertWithTitle(title: "Congrats!", message: "You successfully added a favorite")
+        
     }
     
     
