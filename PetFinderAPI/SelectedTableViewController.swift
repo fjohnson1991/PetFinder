@@ -25,8 +25,10 @@ class SelectedTableViewController: UIViewController, UITableViewDataSource, UITa
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        self.downloadFavorites {
+        AnimalDataStore.sharedInstance.downloadFavorites {
             OperationQueue.main.addOperation {
+                self.animalArray = AnimalDataStore.sharedInstance.animalArray
+                print(self.animalArray.count)
                 self.favoritesTableView.reloadData()
             }
         }
@@ -75,30 +77,22 @@ class SelectedTableViewController: UIViewController, UITableViewDataSource, UITa
             if let animalValues = snapshot.value as? [String: Any] {
                 
                 let animalToRemoveName = self.animalArray[(indexPath?.row)!]["name"] as! String
-                let animalToRemoveBreed = self.animalArray[(indexPath?.row)!]["breed"] as! String
-                let animalToRemoveSex = self.animalArray[(indexPath?.row)!]["sex"] as! String
-                let animalToRemoveAge = self.animalArray[(indexPath?.row)!]["age"] as! String
-                let animalToRemoveSize = self.animalArray[(indexPath?.row)!]["size"] as! String
+                let animalToRemoveuniqueID = self.animalArray[(indexPath?.row)!]["uniqueID"] as! String
+                
                 print(animalToRemoveName)
                 
                 for animal in animalValues {
                     let value = animal.value as! [String: String]
-                    if (value["name"] == animalToRemoveName) && (value["breed"] == animalToRemoveBreed) && (value["sex"] == animalToRemoveSex) && (value["age"] == animalToRemoveAge) && (value["size"] == animalToRemoveSize) {
+                    if (value["uniqueID"] == animalToRemoveuniqueID) {
                         
                         let keyToRemove = animal.key
                         print(keyToRemove)
                         
-                        self.ref.child("favorites").child(self.userKey!).observeSingleEvent(of: .value, with: { snapshot in
-                            if let favValues = snapshot.value as? [String] {
-                                if favValues.contains(keyToRemove) {
-                                    for animalValue in favValues {
-                                        print(animalValue)
-                                        self.ref.child("favorites").child(self.userKey!).child(animalValue).removeValue()
-                                    }
-                                    
-                                }
-                            }
-                        })
+                        var removeFavorite = [String: String]()
+                        removeFavorite[keyToRemove] = "false"
+                        
+                        self.ref.child("favorites").child(self.userKey!).updateChildValues(removeFavorite)
+                        self.favoritesTableView.reloadData()
                     }
                 }
             }
@@ -109,28 +103,21 @@ class SelectedTableViewController: UIViewController, UITableViewDataSource, UITa
     }
 
     
-    func downloadFavorites(with completion: @escaping ()-> ()) {
-        animalArray.removeAll()
-        let ref = FIRDatabase.database().reference().root
+    
+    @IBAction func logoutButton(_ sender: Any) {
+        do {
+            try FIRAuth.auth()?.signOut()
+        } catch {
+            print(error)
+        }
         
+        if let storyboard = self.storyboard {
+            let loginVC = storyboard.instantiateViewController(withIdentifier: "SignInViewController")
+            self.present(loginVC, animated: false, completion: nil)
+        }
         
-        ref.child("favorites").child(userKey!).observeSingleEvent(of: .value, with: { snapshot in
-            if let favValues = snapshot.value as? [String] {
-                ref.child("animals").observeSingleEvent(of: .value, with: { snapshot in
-                    if let animalValues = snapshot.value as? [String: Any] {
-                        for (_, value) in animalValues.enumerated() {
-                            if favValues.contains(value.key) {
-                                var animalToAdd = [String: Any]()
-                                animalToAdd = value.value as! [String : Any]
-                                self.animalArray.append(animalToAdd)
-                                completion()
-                            }
-                        }
-                    }
-                })
-            }
-        })
     }
+    
     
     
     /*

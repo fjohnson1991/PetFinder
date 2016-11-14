@@ -18,6 +18,7 @@ struct Animal {
     let age: String
     let size: String
     let description: String
+    let uniqueID: String = ""
     
     init(dict: JSON) {
         self.type = dict["animal"]["$t"].stringValue

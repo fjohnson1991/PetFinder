@@ -25,17 +25,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         
-        let currentUser = FIRAuth.auth()?.currentUser?.email
-        
-        if currentUser != nil
-        {
-            AnimalDataStore.displayName(email: currentUser!)
-            self.window?.rootViewController = self.storyboard.instantiateViewController(withIdentifier: "SelectedTableViewController")
-        }
-        else
-        {
-            self.window?.rootViewController = self.storyboard.instantiateViewController(withIdentifier: "SignInViewController")
-        }
+//        let currentUser = FIRAuth.auth()?.currentUser?.email
+//
+//        if currentUser != nil
+//        {
+//            AnimalDataStore.displayName(email: currentUser!)
+//            self.window?.rootViewController = self.storyboard.instantiateViewController(withIdentifier: "SelectedTableViewController")
+//        }
+//        else
+//        {
+//            self.window?.rootViewController = self.storyboard.instantiateViewController(withIdentifier: "SignInViewController")
+//        }
         return true
     }
 

@@ -153,9 +153,14 @@
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" title="Favorites" id="A3H-N1-gEg">
-                        <barButtonItem key="rightBarButtonItem" systemItem="add" id="KPb-XP-E60">
+                        <barButtonItem key="leftBarButtonItem" systemItem="add" id="KPb-XP-E60">
                             <connections>
                                 <segue destination="i68-AG-eRd" kind="show" identifier="addFavorite" id="OIu-V7-qwV"/>
+                            </connections>
+                        </barButtonItem>
+                        <barButtonItem key="rightBarButtonItem" title="Logout" id="FxN-Ar-wKh">
+                            <connections>
+                                <action selector="logoutButton:" destination="BYZ-38-t0r" id="Rwi-rR-fwk"/>
                             </connections>
                         </barButtonItem>
                     </navigationItem>

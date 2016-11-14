@@ -12,16 +12,19 @@ import FirebaseAuth
 import FirebaseDatabase
 
 class AnimalDataStore {
+    
     static let sharedInstance = AnimalDataStore()
     private init() {}
     
-    var firebaseAnimals = [String: Any]()
-    var animalFavs = [String: Any]()
+    var animalArray = [[String: Any]]()
+    var allAnimals = [[String: Any]]()
     var animals: [Animal] = []
     var username = ""
     
+    let ref = FIRDatabase.database().reference().root
+    let userKey =  FIRAuth.auth()?.currentUser?.uid
+    
     class func getAnimalsFromPetFinderAPI(completion: @escaping ()->Void) {
-        
         PetFinderAPIClient.loadAnimals { (response) in
             for animal in response {
                 let newAnimal = Animal(dict: animal)
@@ -41,22 +44,41 @@ class AnimalDataStore {
 
     
     
-//    class func downloadAnimals(with completion: @escaping () -> Void) {
-//        
-//        let ref = FIRDatabase.database().reference().root
-//        let key =  ref.child("animals").childByAutoId()
-//        
-//        ref.child("animals").observeSingleEvent(of: .value, with: { snapshot in
-//            if let values = snapshot.value as? [String : AnyObject] {
-//                guard let animals = values[key] as? [[String: Any]] else {return}
-//                for animal in animals {
-//                    AnimalDataStore.sharedInstance.firebaseAnimals.append(animal)
-//                }
-//                completion()
-//            }
-//        })
-//    }
-//    
+    func downloadAnimals(with completion: @escaping ([String: Any]) -> ()) {
+        
+        ref.child("animals").observeSingleEvent(of: .value, with: { snapshot in
+            if let animalValues = snapshot.value as? [String: Any] {
+                self.allAnimals.append(animalValues)
+                completion(animalValues)
+                
+            }
+            
+        })
+    }
+
     
     
+    func downloadFavorites(with completion: @escaping ()-> ()) {
+        animalArray.removeAll()
+        
+        ref.child("favorites").child(userKey!).observeSingleEvent(of: .value, with: { snapshot in
+            if let favValues = snapshot.value as? [String: String] {
+                self.downloadAnimals(with: { (animals) in
+                    for (_, value) in animals.enumerated() {
+                        for fav in favValues {
+                            if fav.key == value.key {
+                                if fav.value == "true" {
+                                    var animalToAdd = [String: Any]()
+                                    animalToAdd = value.value as! [String : Any]
+                                    AnimalDataStore.sharedInstance.animalArray.append(animalToAdd)
+                                    completion()
+                                }
+                            }
+                        }
+                    }
+                })
+            }
+        })
+    }
+        
 }
