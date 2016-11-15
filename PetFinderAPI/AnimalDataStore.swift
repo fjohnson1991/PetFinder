@@ -16,8 +16,8 @@ class AnimalDataStore {
     static let sharedInstance = AnimalDataStore()
     private init() {}
     
-    var animalArray = [[String: Any]]()
-    var allAnimals = [[String: Any]]()
+    var animalArray = [[String: String]]()
+    var allAnimals = [[String: String]]()
     var animals: [Animal] = []
     var username = ""
     
@@ -43,16 +43,17 @@ class AnimalDataStore {
     }
 
     
-    
-    func downloadAnimals(with completion: @escaping ([String: Any]) -> ()) {
+    func downloadAnimals(with completion: @escaping ([String: String]) -> ()) {
         
         ref.child("animals").observeSingleEvent(of: .value, with: { snapshot in
             if let animalValues = snapshot.value as? [String: Any] {
-                self.allAnimals.append(animalValues)
-                completion(animalValues)
+                for animal in animalValues {
+                    let animalString = animal.value as! [String: String]
+                    self.allAnimals.append(animalString)
+                    completion(animalString)
                 
+                }
             }
-            
         })
     }
 
@@ -63,16 +64,14 @@ class AnimalDataStore {
         
         ref.child("favorites").child(userKey!).observeSingleEvent(of: .value, with: { snapshot in
             if let favValues = snapshot.value as? [String: String] {
-                self.downloadAnimals(with: { (animals) in
-                    for (_, value) in animals.enumerated() {
+                self.downloadAnimals(with: { (animal) in
                         for fav in favValues {
-                            if fav.key == value.key {
+                             print("FavKey: \(fav.key) vs. AnimalKey: \(animal["uniqueID"])")
+                            if fav.key == animal["uniqueID"]! {
                                 if fav.value == "true" {
-                                    var animalToAdd = [String: Any]()
-                                    animalToAdd = value.value as! [String : Any]
-                                    AnimalDataStore.sharedInstance.animalArray.append(animalToAdd)
+                                    AnimalDataStore.sharedInstance.animalArray.append(animal)
                                     completion()
-                                }
+                                
                             }
                         }
                     }
@@ -80,5 +79,6 @@ class AnimalDataStore {
             }
         })
     }
-        
+
+    
 }

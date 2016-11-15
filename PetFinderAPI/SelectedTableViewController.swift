@@ -14,7 +14,7 @@ class SelectedTableViewController: UIViewController, UITableViewDataSource, UITa
 
     @IBOutlet weak var favoritesTableView: UITableView!
     
-    var animalArray = [[String: Any]]()
+    var animalArray = [[String: String]]()
     var indexPathForCell: Int = 0
     let ref = FIRDatabase.database().reference().root
     let userKey =  FIRAuth.auth()?.currentUser?.uid
@@ -65,7 +65,7 @@ class SelectedTableViewController: UIViewController, UITableViewDataSource, UITa
         
         return cell
     }
-    
+
     func unfavoriteButton(sender: UIButton) {
         _ = sender.tag
         
@@ -73,30 +73,21 @@ class SelectedTableViewController: UIViewController, UITableViewDataSource, UITa
         let cell = cellContent.superview! as! UITableViewCell
         let indexPath = self.favoritesTableView.indexPath(for: cell)
         
-        self.ref.child("animals").observeSingleEvent(of: .value, with: { (snapshot) in
-            if let animalValues = snapshot.value as? [String: Any] {
+        let animalToRemoveuniqueID = self.animalArray[(indexPath?.row)!]["uniqueID"]!
+        
+        
+        for animal in AnimalDataStore.sharedInstance.animalArray {
+            if (animal["uniqueID"]! == animalToRemoveuniqueID) {
                 
-                let animalToRemoveName = self.animalArray[(indexPath?.row)!]["name"] as! String
-                let animalToRemoveuniqueID = self.animalArray[(indexPath?.row)!]["uniqueID"] as! String
+                let keyToRemove = animal["uniqueID"]!
                 
-                print(animalToRemoveName)
+                var removeFavorite = [String: String]()
+                removeFavorite[keyToRemove] = "false"
                 
-                for animal in animalValues {
-                    let value = animal.value as! [String: String]
-                    if (value["uniqueID"] == animalToRemoveuniqueID) {
-                        
-                        let keyToRemove = animal.key
-                        print(keyToRemove)
-                        
-                        var removeFavorite = [String: String]()
-                        removeFavorite[keyToRemove] = "false"
-                        
-                        self.ref.child("favorites").child(self.userKey!).updateChildValues(removeFavorite)
-                        self.favoritesTableView.reloadData()
-                    }
-                }
+                self.ref.child("favorites").child(self.userKey!).updateChildValues(removeFavorite)
+                self.favoritesTableView.reloadData()
             }
-        })
+        }
         
         presentAlertWithTitle(title: "Success", message: "You have refined your favorites list")
         favoritesTableView.reloadData()

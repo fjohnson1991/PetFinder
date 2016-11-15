@@ -32,7 +32,7 @@ class DetailedViewController: UIViewController {
     var favAgeArray = [String]()
     
     var animalToAdd: Animal?
-    var animalArray = [[String: Any]]()
+    var animalArray = [[String: String]]()
     
     var newFavorite = [String: String]()
     
@@ -58,7 +58,6 @@ class DetailedViewController: UIViewController {
     }
     
     //MARK: - Check for duplicates
-
     
     func checkIfAnimalAlreadyExists(with completion: @escaping (Bool) -> ()) {
         var completionToPass = false
@@ -68,28 +67,20 @@ class DetailedViewController: UIViewController {
             let animalAge = animalToAdd?.age
             else { return }
         
-        ref.child("animals").observeSingleEvent(of: .value, with: { snapshot in
-            if let animalValues = snapshot.value as? [String: Any] {
-                for animal in animalValues {
-                    let animalString = animal.value as! [String: String]
-                    
-                    self.nameArray.append(animalString["name"]!)
-                    self.breedArray.append(animalString["breed"]!)
-                    self.ageArray.append(animalString["age"]!)
-                    
-                }
-            }
-            
-            
-            if (self.nameArray.contains(animalName) && self.breedArray.contains(animalBreed) && self.ageArray.contains(animalAge)) {
-                completionToPass = false
-            } else {
-                completionToPass = true
-            }
-            print(completionToPass)
-            completion(completionToPass)
-        })
+        for animal in AnimalDataStore.sharedInstance.allAnimals {
+            self.nameArray.append(animal["name"]!)
+            self.breedArray.append(animal["breed"]!)
+            self.ageArray.append(animal["age"]!)
+        }
+
+        if (self.nameArray.contains(animalName) && self.breedArray.contains(animalBreed) && self.ageArray.contains(animalAge)) {
+            completionToPass = false
+        } else {
+            completionToPass = true
+        }
+        completion(completionToPass)
     }
+    
     
     func checkIfAnimalAlreadyFavorite(with completion: @escaping (Bool) -> ()) {
         
@@ -100,28 +91,18 @@ class DetailedViewController: UIViewController {
             let animalAge = animalToAdd?.age
             else { return }
         
-        var newDictionary = [String: String]()
-        newDictionary["name"] = animalName
-        newDictionary["breed"] = animalBreed
-        newDictionary["age"] = animalAge
-        
-        
         for animal in AnimalDataStore.sharedInstance.animalArray {
             
-            let animalString = animal as! [String: String]
-            
-            favNameArray.append(animalString["name"]!)
-            favBreedArray.append(animalString["breed"]!)
-            favAgeArray.append(animalString["age"]!)
+            favNameArray.append(animal["name"]!)
+            favBreedArray.append(animal["breed"]!)
+            favAgeArray.append(animal["age"]!)
         }
         
         if ((favNameArray.contains(animalName)) && (favAgeArray.contains(animalAge)) && (favBreedArray.contains(animalBreed))) {
-            print("FAV NAME ARRAY: \(favNameArray) vs. ANIMAL NAME: \(animalName)\n\n\n")
             completionToPass = false
         } else {
             completionToPass = true
         }
-        print(completionToPass)
         completion(completionToPass)
         
     }
@@ -129,37 +110,27 @@ class DetailedViewController: UIViewController {
     
     //MARK: - Add to favorites
     
-    
     func generateIdToPass(with completion: (String) -> ()) {
         var idToPass = String()
         
-        
         for animal in AnimalDataStore.sharedInstance.allAnimals {
-            print(AnimalDataStore.sharedInstance.allAnimals)
-            for key in animal {
-                let animalString = key.value as! [String: String]
-                print(animalString)
-                print(animalString["name"]!)
+            print(animal)
+            print(animal["name"]!)
+            print(animalToAdd!.name)
+            if animal["name"]! == animalToAdd!.name {
+                idToPass = animal["uniqueID"]!
                 print(animalToAdd!.name)
-                if animalString["name"]! == animalToAdd!.name {
-                    idToPass = animalString["uniqueID"]!
-                    print(animalToAdd!.name)
-                    print(idToPass)
-                    
-                }
+                print(idToPass)
+                
             }
-            }
-
-        print(idToPass)
+        }
         completion(idToPass)
         
     }
     
     
-    @IBAction func addToFavoritesButton(_ sender: AnyObject) {
+    func createNewFavorite(with completion: ([String: String], [String: String]) -> ()) {
         let key =  ref.child("animals").childByAutoId().key
-        guard let userKey = FIRAuth.auth()?.currentUser?.uid else {return}
-        
         guard let animalName = animalToAdd?.name,
             let animalBreed = animalToAdd?.breed,
             let animalAge = animalToAdd?.age,
@@ -175,8 +146,15 @@ class DetailedViewController: UIViewController {
         newDictionary["sex"] = animalSex
         newDictionary["uniqueID"] = key
         
+        self.newFavorite[key] = "true"
         
+        completion(newDictionary, newFavorite)
         
+    }
+    
+    
+    @IBAction func addToFavoritesButton(_ sender: AnyObject) {
+        guard let userKey = FIRAuth.auth()?.currentUser?.uid else {return}
         
         if self.animalArray.count == 0 {
             
@@ -185,18 +163,17 @@ class DetailedViewController: UIViewController {
                 if doesNotExist == false {
                     self.generateIdToPass(with: { (passedID) in
                         self.newFavorite[passedID] = "true"
-                        print("ID TO PASS IN FAV BUTTON IF COUNT = 0: \(passedID)\n\n\n")
                         self.ref.child("favorites").child(userKey).updateChildValues(self.newFavorite)
                     })
-                    } else {
-                        self.newFavorite[key] = "true"
-                        self.ref.child("animals").updateChildValues(["\(key)": newDictionary])
+                } else {
+                    self.createNewFavorite(with: { (newDictionary, newFavorite) in
+                        self.ref.child("animals").updateChildValues(["\(newDictionary["uniqueID"]!)": newDictionary])
                         self.ref.child("favorites").child(userKey).updateChildValues(self.newFavorite)
-                    }
-                })
-                
+                    })
+                }
                 self.presentAlertWithTitle(title: "Congrats!", message: "You successfully added a favorite")
-            }
+            })
+        }
         
         
         checkIfAnimalAlreadyFavorite { (addToFavorite) in
@@ -206,25 +183,18 @@ class DetailedViewController: UIViewController {
                     if doesNotExist == false {
                         self.generateIdToPass(with: { (passedID) in
                             self.newFavorite[passedID] = "true"
-                            print("PASSED ID IN FAV BUTTON IF COUNT >1: \(passedID)\n\n\n")
-                            print("NEW FAV: \(self.newFavorite)\n\n\n")
-                            print("USER KEY: \(userKey)")
-                            print("NEW FAV: \(self.newFavorite)\n\n\n")
-                            print("USER KEY: \(userKey)")
                             self.ref.child("favorites").child(userKey).updateChildValues(self.newFavorite)
                         })
                         
                         
-                        } else {
-                            self.newFavorite[key] = "true"
-                            self.ref.child("animals").updateChildValues(["\(key)": newDictionary])
+                    } else {
+                        self.createNewFavorite(with: { (newDictionary, newFavorite) in
+                            self.ref.child("animals").updateChildValues(["\(newDictionary["uniqueID"]!)": newDictionary])
                             self.ref.child("favorites").child(userKey).updateChildValues(self.newFavorite)
-                            
-                            }
-                            self.presentAlertWithTitle(title: "Congrats!", message: "You successfully added a favorite")
-                    })
-                
-                
+                        })
+                    }
+                    self.presentAlertWithTitle(title: "Congrats!", message: "You successfully added a favorite")
+                })
             } else if addToFavorite == false {
                 self.presentAlertWithTitle(title: "Ooops!", message: "Already a favorite")
             }
