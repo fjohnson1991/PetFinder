@@ -89,7 +89,9 @@ class SignInViewController: UIViewController {
    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "loginSuccess" {
-            _ = segue.destination as! SelectedTableViewController
+            let destinationNavigationController = segue.destination as! UINavigationController
+            let targetController = destinationNavigationController.topViewController as! SelectedTableViewController
+
         }
     }
 }
